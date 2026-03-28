@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QYmail - 专业邮箱系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        
+        :root {
+            --main-red: #d90429;
+            --light-red: #ef233c;
+            --bg-deep: #0a0a0a;
+            --bg-card: #121212;
+            --bg-panel: #1a1a1a;
+            --text-white: #fff;
+            --text-gray: #b0b0b0;
+            --border-dark: #2a2a2a;
+            
+            --light-bg-deep: #f5f5f5;
+            --light-bg-card: #ffffff;
+            --light-bg-panel: #f0f0f0;
+            --light-text-dark: #333;
+            --light-text-gray: #666;
+            --light-border: #e0e0e0;
+        }
+        
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-white);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
+        }
+        
+        body.light-mode {
+            background-color: var(--light-bg-deep);
+            color: var(--light-text-dark);
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: var(--main-red); border-radius: 4px; }
+
+        /* 顶部导航 */
+        .top-header {
+            height: 60px;
+            background: var(--bg-deep);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-dark);
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .top-header {
+            background: var(--light-bg-card);
+            border-bottom-color: var(--light-border);
+        }
+        
+        .header-logo {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-logo span { color: var(--main-red); }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header-badge {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(217, 4, 41, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .header-badge:hover {
+            background: rgba(217, 4, 41, 0.3);
+        }
+        
+        .theme-toggle {
+            width: 40px;
+            height: 24px;
+            background: var(--border-dark);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        
+        .theme-toggle.light {
+            background: #ffd700;
+        }
+        
+        .theme-toggle::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            transform: translateX(0);
+        }
+        
+        .theme-toggle.light::after {
+            transform: translateX(16px);
+        }
+        
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+        
+        .icon-btn:hover {
+            background: var(--bg-panel);
+            color: var(--text-white);
+            transform: scale(1.1);
+        }
+        
+        body.light-mode .icon-btn {
+            color: var(--light-text-gray);
+        }
+        
+        body.light-mode .icon-btn:hover {
+            background: var(--light-bg-panel);
+            color: var(--light-text-dark);
+        }
+
+        /* 红色标签栏 */
+        .tab-nav {
+            height: 50px;
+            background: var(--main-red);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0;
+            padding: 0 24px;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            height: 100%;
+            padding: 0 20px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #ffc107;
+        }
+
+        /* 主体三栏布局 */
+        .main-container {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 左栏：侧边栏 */
+        .sidebar {
+            flex: 0 0 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-dark);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .sidebar {
+            background: var(--light-bg-card);
+            border-right-color: var(--light-border);
+        }
+        
+        .sidebar-section {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-dark);
+        }
+        
+        body.light-mode .sidebar-section {
+            border-bottom-color: var(--light-border);
+        }
+        
+        .sidebar-header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-gray);
+        }
+        
+        .sidebar-btn {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-gray);
+            width: 100%;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .sidebar-btn:hover {
+            background: var(--bg-panel);
+            color: var(--text-white);
+        }
+        
+        body.light-mode .sidebar-btn:hover {
+            background: var(--light-bg-panel);
+        }
+        
+        .sidebar-btn.active {
+            background: var(--light-red);
+            color: white;
+            border-left: 3px solid var(--main-red);
+        }
+        
+        .badge {
+            background: var(--main-red);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* 中栏：邮件列表 */
+        .mail-list {
+            flex: 1;
+            background: var(--bg-deep);
+            border-right: 1px solid var(--border-dark);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-width: 400px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .mail-list {
+            background: var(--light-bg-deep);
+            border-right-color: var(--light-border);
+        }
+        
+        .toolbar {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-deep);
+            z-index: 10;
+            align-items: center;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .toolbar {
+            background: var(--light-bg-deep);
+            border-bottom-color: var(--light-border);
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 6px 12px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            color: var(--text-white);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        body.light-mode .search-box {
+            background: var(--light-bg-panel);
+            border-color: var(--light-border);
+            color: var(--light-text-dark);
+        }
+        
+        .search-box:focus {
+            border-color: var(--main-red);
+            box-shadow: 0 0 0 2px rgba(217, 4, 41, 0.2);
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: var(--text-gray);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        body.light-mode .btn {
+            border-color: var(--light-border);
+            color: var(--light-text-gray);
+        }
+        
+        .btn:hover {
+            border-color: var(--main-red);
+            color: var(--light-red);
+            background: rgba(217, 4, 41, 0.1);
+        }
+
+        .list-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #1e1e1e;
+            transition: all 0.2s ease;
+        }
+        
+        body.light-mode .list-item {
+            border-bottom-color: var(--light-border);
+        }
+        
+        .list-item:hover {
+            background: var(--bg-panel);
+        }
+        
+        body.light-mode .list-item:hover {
+            background: var(--light-bg-panel);
+        }
+        
+        .list-item.active {
+            background: var(--light-red);
+            border-left: 3px solid var(--main-red);
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--main-red), #7a0416);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+        
+        .item-info {
+            flex-grow: 1;
+            overflow: hidden;
+            min-width: 0;
+        }
+        
+        .item-name {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .item-sub {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .star-icon {
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .star-icon:hover {
+            transform: scale(1.2);
+        }
+
+        /* 右栏：预览 */
+        .preview-panel {
+            flex: 0 0 400px;
+            background: var(--bg-deep);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .preview-panel {
+            background: var(--light-bg-deep);
+        }
+        
+        .preview-header {
+            padding: 16px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .preview-header {
+            background: var(--light-bg-card);
+            border-bottom-color: var(--light-border);
+        }
+        
+        .preview-header h2 {
+            font-size: 16px;
+        }
+        
+        .preview-body {
+            flex-grow: 1;
+            padding: 20px;
+            background: var(--bg-card);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .preview-body {
+            background: var(--light-bg-card);
+            color: var(--light-text-dark);
+        }
+
+        .email-content {
+            padding: 16px;
+            background: var(--bg-panel);
+            border-radius: 6px;
+            line-height: 1.8;
+            word-break: break-word;
+        }
+
+        body.light-mode .email-content {
+            background: var(--light-bg-panel);
+            color: var(--light-text-dark);
+        }
+        
+        .empty-state {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .stat-card {
+            background: var(--light-bg-panel);
+            border-color: var(--light-border);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--main-red);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal {
+            background: var(--bg-card);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            border: 2px solid var(--main-red);
+            box-shadow: 0 0 25px rgba(217,4,41,0.5);
+            overflow: hidden;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .modal {
+            background: var(--light-bg-card);
+            color: var(--light-text-dark);
+        }
+        
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-panel);
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .modal-header {
+            background: var(--light-bg-panel);
+            border-bottom-color: var(--light-border);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            background: var(--bg-panel);
+            transition: all 0.3s ease;
+        }
+        
+        body.light-mode .modal-footer {
+            background: var(--light-bg-panel);
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .input-group.block {
+            display: block;
+        }
+        
+        .input-group label {
+            font-size: 14px;
+            font-weight: 500;
+            width: 80px;
+            flex-shrink: 0;
+        }
+        
+        .input-group.block label {
+            display: block;
+            width: auto;
+            margin-bottom: 6px;
+        }
+        
+        .input {
+            flex-grow: 1;
+            border: none;
+            border-bottom: 1px solid #444;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: var(--text-white);
+            padding: 6px 0;
+            transition: all 0.2s ease;
+        }
+        
+        body.light-mode .input {
+            color: var(--light-text-dark);
+            border-bottom-color: var(--light-border);
+        }
+        
+        .input:focus {
+            border-color: var(--light-red);
+            box-shadow: 0 1px 0 var(--light-red);
+        }
+        
+        .input-group.block .input {
+            width: 100%;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        body.light-mode .input-group.block .input {
+            border-color: var(--light-border);
+        }
+        
+        textarea.input {
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 12px;
+            min-height: 120px;
+            width: 100%;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        body.light-mode textarea.input {
+            border-color: var(--light-border);
+        }
+        
+        .btn-primary {
+            background: white;
+            color: black;
+            padding: 10px 30px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .btn-danger {
+            background: var(--main-red);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            background: var(--light-red);
+        }
+        
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .close-btn:hover {
+            color: white;
+            transform: scale(1.1);
+        }
+
+        body.light-mode .close-btn {
+            color: var(--light-text-gray);
+        }
+
+        body.light-mode .close-btn:hover {
+            color: var(--light-text-dark);
+        }
+
+        /* 通知 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #d90429, #ef233c);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(217, 4, 41, 0.3);
+            animation: slideIn 0.4s ease;
+            z-index: 2000;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        .notification.out {
+            animation: slideOut 0.4s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .preview-panel {
+                flex: 0 0 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .preview-panel {
+                flex: 0 0 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .preview-panel {
+                display: none;
+            }
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(217, 4, 41, 0.2);
+            color: var(--light-red);
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 4px;
+        }
+
+        .current-filter-info {
+            padding: 8px 16px;
+            background: rgba(217, 4, 41, 0.1);
+            border-left: 3px solid var(--main-red);
+            font-size: 12px;
+            color: var(--light-red);
+            display: none;
+        }
+
+        .current-filter-info.active {
+            display: block;
+        }
+
+        .current-filter-info button {
+            background: transparent;
+            border: none;
+            color: var(--light-red);
+            cursor: pointer;
+            margin-left: 10px;
+            text-decoration: underline;
+            font-size: 12px;
+        }
+
+        .contact-item {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-dark);
+            transition: all 0.2s ease;
+        }
+
+        body.light-mode .contact-item {
+            border-bottom-color: var(--light-border);
+        }
+
+        .contact-item:hover {
+            background: var(--bg-panel);
+        }
+
+        body.light-mode .contact-item:hover {
+            background: var(--light-bg-panel);
+        }
+
+        .contact-info {
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+
+        .contact-name {
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .contact-email {
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 6px;
+            margin-left: 8px;
+        }
+
+        .contact-actions button {
+            background: transparent;
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            padding: 4px 6px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .contact-actions button:hover {
+            color: var(--main-red);
+        }
+    </style>
+</head>
+<body>
+    <!-- 音频初始化脚本 -->
+    <script>
+        window.addEventListener('load', function() {
+            const audio = document.getElementById('notificationSound');
+            if (audio) {
+                audio.volume = 0.7;
+                audio.muted = false;
+            }
+        });
+
+        document.addEventListener('click', function allowAudio() {
+            const audio = document.getElementById('notificationSound');
+            if (audio) {
+                audio.muted = false;
+                audio.volume = 0.7;
+            }
+            document.removeEventListener('click', allowAudio);
+        }, { once: true });
+    </script>
+
+    <!-- 顶部 -->
+    <header class="top-header">
+        <div class="header-logo">
+            <span>Q</span>mail Pro
+        </div>
+        <div class="header-right">
+            <div class="header-badge" onclick="openStatsPanel()" title="邮件统计">
+                📊
+            </div>
+            <button class="icon-btn" onclick="openCompose()" title="写邮件">✏️</button>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题"></button>
+            <button class="icon-btn" onclick="openSettings()" title="设置">⚙️</button>
+            <button class="icon-btn" onclick="logout()" title="退出登录">🚪</button>
+            <div class="avatar" id="userAvatar">U</div>
+        </div>
+    </header>
+
+    <!-- 标签栏 -->
+    <nav class="tab-nav" id="tabNav"></nav>
+
+    <!-- 主体 -->
+    <div class="main-container">
+        <!-- 左：侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <!-- 快捷菜单 -->
+            <div class="sidebar-section">
+                <div class="sidebar-header">⭐ 快速访问</div>
+                <button class="sidebar-btn" onclick="setFilterMode('unread')">
+                    📨 未读邮件
+                    <span class="badge" id="unreadCount">0</span>
+                </button>
+                <button class="sidebar-btn" onclick="setFilterMode('starred')">
+                    ⭐ 星标邮件
+                    <span class="badge" id="starredCount">0</span>
+                </button>
+                <button class="sidebar-btn" onclick="setFilterMode('important')">
+                    🔴 重要邮件
+                    <span class="badge" id="importantCount">0</span>
+                </button>
+                <button class="sidebar-btn" onclick="setFilterMode('all')">
+                    📬 所有邮件
+                    <span class="badge" id="allCount">0</span>
+                </button>
+            </div>
+
+            <!-- 联系人部分 -->
+            <div class="sidebar-section">
+                <div class="sidebar-header">
+                    👥 联系人
+                    <button class="icon-btn" onclick="openContactAdd()" style="width:24px;height:24px;padding:0;font-size:14px;">+</button>
+                </div>
+                <div id="contactsList" style="max-height: 250px; overflow-y: auto;"></div>
+            </div>
+        </aside>
+
+        <!-- 中：邮件列表 -->
+        <div class="mail-list" id="mailListContainer">
+            <!-- 当前筛选状态提示 -->
+            <div class="current-filter-info" id="filterInfo"></div>
+
+            <div class="toolbar">
+                <input type="text" class="search-box" id="searchInput" placeholder="🔍 搜索邮件..." onkeyup="searchMails()">
+                <button class="btn" onclick="reloadMails()">🔄</button>
+                <button class="btn" onclick="openCompose()">✉️</button>
+            </div>
+            <div id="mailList"><div class="empty-state">加载中...</div></div>
+        </div>
+
+        <!-- 右：预览面板 -->
+        <div class="preview-panel">
+            <div id="previewContent"></div>
+        </div>
+    </div>
+
+    <!-- 弹窗 -->
+    
+    <!-- 写邮件弹窗 -->
+    <div class="modal-overlay" id="composeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>写邮件</h2>
+                <button class="close-btn" onclick="closeModal('composeModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>收件人</label>
+                    <input type="text" class="input" id="composeTo" placeholder="收件人邮箱">
+                </div>
+                <div class="input-group">
+                    <label>主题</label>
+                    <input type="text" class="input" id="composeSubject" placeholder="邮件主题">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px;">正文</label>
+                    <textarea class="input" id="composeContent"></textarea>
+                </div>
+                <div class="input-group block">
+                    <label>标签</label>
+                    <input type="text" id="composeTags" placeholder="用逗号分隔多个标签">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="saveDraft()">💾 保存草稿</button>
+                <button class="btn-primary" onclick="sendEmail()">发送</button>
+                <button class="btn-danger" onclick="closeModal('composeModal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal" style="max-width:800px;">
+            <div class="modal-header">
+                <h2>设置</h2>
+                <button class="close-btn" onclick="closeModal('settingsModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div>
+                        <h3 style="margin-bottom:12px;">👤 个人资料</h3>
+                        <div class="input-group block">
+                            <label>昵称</label>
+                            <input type="text" class="input" id="settingsNickname" placeholder="输入昵称">
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom:12px;">🔔 通知设置</h3>
+                        <div class="input-group block">
+                            <label>
+                                <input type="checkbox" id="notifySound" checked> 邮件提示音
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="saveSettings()">保存设置</button>
+                <button class="btn-danger" onclick="closeModal('settingsModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计面板 -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal" style="max-width:900px;">
+            <div class="modal-header">
+                <h2>📊 邮件统计</h2>
+                <button class="close-btn" onclick="closeModal('statsModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalMailsCount">0</div>
+                        <div class="stat-label">总邮件数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="unreadMailsCount">0</div>
+                        <div class="stat-label">未读邮件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="starredMailsCount">0</div>
+                        <div class="stat-label">星标邮件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="importantMailsCount">0</div>
+                        <div class="stat-label">重要邮件</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-danger" onclick="closeModal('statsModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 联系人管理弹窗 -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal" style="max-width:500px;">
+            <div class="modal-header">
+                <h2 id="contactTitle">新增联系人</h2>
+                <button class="close-btn" onclick="closeModal('contactModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editContactId">
+                <div class="input-group block">
+                    <label>姓名</label>
+                    <input type="text" class="input" id="contactName" placeholder="联系人姓名">
+                </div>
+                <div class="input-group block">
+                    <label>邮箱</label>
+                    <input type="text" class="input" id="contactEmail" placeholder="联系人邮箱">
+                </div>
+                <div class="input-group block">
+                    <label>分组</label>
+                    <input type="text" class="input" id="contactGroup" placeholder="工作、朋友等">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-danger" onclick="closeModal('contactModal')">取消</button>
+                <button class="btn-primary" onclick="saveContact()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="notificationSound" preload="auto" crossorigin="anonymous">
+        <source src="./提示音.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // ==================== 全局变量 ====================
+        const API = "http://127.0.0.1:8080";
+        const userEmail = localStorage.getItem('qyemail') || 'test@test.com';
+        
+        let currentMailId = null;
+        let currentMails = [];
+        let allMails = [];
+        let lastMailCount = 0;
+        let autoRefreshInterval = null;
+        let currentTab = 'inbox';
+        let isDarkMode = localStorage.getItem('theme') === 'dark' || !localStorage.getItem('theme');
+        let filterMode = 'all';
+        let allContacts = [];
+
+        // ==================== 初始化 ====================
+        document.getElementById('userAvatar').textContent = userEmail.charAt(0).toUpperCase();
+        
+        window.onload = function() {
+            initTheme();
+            initTabs();
+            loadMails();
+            loadContacts();
+            updateStats();
+            startAutoRefresh();
+        };
+
+        // ==================== 🌙 主题切换 ====================
+        function initTheme() {
+            if(!isDarkMode) {
+                document.body.classList.add('light-mode');
+                document.getElementById('themeToggle').classList.add('light');
+            }
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            
+            if(isDarkMode) {
+                document.body.classList.remove('light-mode');
+                document.getElementById('themeToggle').classList.remove('light');
+            } else {
+                document.body.classList.add('light-mode');
+                document.getElementById('themeToggle').classList.add('light');
+            }
+        }
+
+        // ==================== 标签栏 ====================
+        function initTabs() {
+            const tabNav = document.getElementById('tabNav');
+            const tabs = ['收件箱', '已发送', '草稿箱'];
+            tabNav.innerHTML = tabs.map((tab, i) => `
+                <button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="switchTab('${['inbox', 'sent', 'drafts'][i]}')">
+                    ${tab}
+                </button>
+            `).join('');
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            filterMode = 'all';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            updateFilterInfo();
+            loadMails();
+        }
+
+        // ==================== 筛选模式 ====================
+        function setFilterMode(mode) {
+            filterMode = mode;
+            updateFilterInfo();
+            applyFilter();
+        }
+
+        function updateFilterInfo() {
+            const filterInfo = document.getElementById('filterInfo');
+            const modeMap = {
+                'all': '',
+                'unread': '📨 未读邮件',
+                'starred': '⭐ 星标邮件',
+                'important': '🔴 重要邮件'
+            };
+
+            if(filterMode === 'all') {
+                filterInfo.classList.remove('active');
+            } else {
+                filterInfo.innerHTML = `
+                    ${modeMap[filterMode]}
+                    <button onclick="setFilterMode('all')">返回全部</button>
+                `;
+                filterInfo.classList.add('active');
+            }
+        }
+
+        function applyFilter() {
+            let filtered = allMails;
+
+            if(filterMode === 'unread') {
+                filtered = allMails.filter(m => m.unread === 1);
+            } else if(filterMode === 'starred') {
+                filtered = allMails.filter(m => m.starred === 1);
+            } else if(filterMode === 'important') {
+                filtered = allMails.filter(m => m.important === 1);
+            }
+
+            updateMailList(filtered);
+        }
+
+        // ==================== 自动刷新 ====================
+        function startAutoRefresh() {
+            autoRefreshMails();
+            autoRefreshInterval = setInterval(autoRefreshMails, 3000);
+        }
+
+        function stopAutoRefresh() {
+            if(autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        }
+
+        async function autoRefreshMails() {
+            try {
+                const res = await fetch(`${API}/api/emails?user_email=${encodeURIComponent(userEmail)}&tab=${currentTab}`);
+                const data = await res.json();
+                allMails = data.emails || [];
+                lastMailCount = allMails.length;
+                applyFilter();
+                updateStats();
+
+                if(allMails.length > lastMailCount && currentTab === 'inbox' && filterMode === 'all') {
+                    playNotificationSound();
+                    showNotification('📬 收到新邮件！');
+                }
+            } catch(e) {
+                console.error('自动刷新出错:', e);
+            }
+        }
+
+        // ==================== 手动刷新 ====================
+        function reloadMails() {
+            loadMails();
+        }
+
+        // ==================== 邮件加载 ====================
+        async function loadMails() {
+            const list = document.getElementById('mailList');
+            list.innerHTML = '<div class="empty-state">加载中...</div>';
+            try {
+                const res = await fetch(`${API}/api/emails?user_email=${encodeURIComponent(userEmail)}&tab=${currentTab}`);
+                const data = await res.json();
+                allMails = data.emails || [];
+                lastMailCount = allMails.length;
+                applyFilter();
+                updateStats();
+            } catch(e) {
+                list.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        }
+
+        function updateMailList(mails) {
+            const list = document.getElementById('mailList');
+            
+            if(mails.length === 0) {
+                list.innerHTML = '<div class="empty-state">暂无邮件</div>';
+                return;
+            }
+
+            const html = mails.map(m => `
+                <div class="list-item" onclick="viewMail(${m.id})">
+                    <span class="star-icon" onclick="toggleStar(${m.id}, event)">${m.starred === 1 ? '⭐' : '☆'}</span>
+                    <div class="avatar">${(m.from || 'U').charAt(0).toUpperCase()}</div>
+                    <div class="item-info">
+                        <div class="item-name" style="${m.unread === 1 ? 'font-weight:bold' : ''}">${m.from || '未知'}</div>
+                        <div class="item-sub">${m.subject || '无主题'}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            list.innerHTML = html;
+        }
+
+        // ==================== 邮件操作 ====================
+        async function viewMail(id) {
+            currentMailId = id;
+            document.querySelectorAll('#mailList .list-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget?.classList.add('active');
+
+            const panel = document.getElementById('previewContent');
+            try {
+                const res = await fetch(`${API}/api/detail?id=${id}&user_email=${encodeURIComponent(userEmail)}`);
+                const data = await res.json();
+                const m = data.data || data;
+                
+                panel.innerHTML = `
+                    <div class="preview-header">
+                        <div>
+                            <h2>${m.subject || '无主题'}</h2>
+                            <p style="color:var(--text-gray);margin-top:8px;">发件人：${m.from || '未知'}</p>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn" onclick="toggleMailImportant()">🔴</button>
+                            <button class="btn" onclick="deleteMail()">🗑️ 删除</button>
+                        </div>
+                    </div>
+                    <div class="preview-body">
+                        <div class="email-content">${m.content || '无内容'}</div>
+                        ${m.tags ? '<div style="margin-top:16px;"><strong>标签:</strong> ' + m.tags.split(',').map(t => `<span class="tag">${t}</span>`).join('') + '</div>' : ''}
+                    </div>
+                `;
+                
+                await markAsRead(id);
+            } catch(e) {
+                panel.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        }
+
+        async function toggleStar(id, event) {
+            event.stopPropagation();
+            try {
+                const params = new URLSearchParams();
+                params.append('id', id);
+                params.append('user_email', userEmail);
+                
+                await fetch(`${API}/api/mail/star`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                
+                loadMails();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function toggleMailImportant() {
+            try {
+                const params = new URLSearchParams();
+                params.append('id', currentMailId);
+                params.append('user_email', userEmail);
+                
+                await fetch(`${API}/api/mail/important`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                
+                loadMails();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function markAsRead(id) {
+            try {
+                const params = new URLSearchParams();
+                params.append('id', id);
+                
+                await fetch(`${API}/api/mail/read`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                
+                const mail = allMails.find(m => m.id === id);
+                if(mail) {
+                    mail.unread = 0;
+                    applyFilter();
+                    updateStats();
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function openCompose() {
+            document.getElementById('composeTo').value = '';
+            document.getElementById('composeSubject').value = '';
+            document.getElementById('composeContent').value = '';
+            document.getElementById('composeTags').value = '';
+            document.getElementById('composeModal').style.display = 'flex';
+        }
+
+        async function sendEmail() {
+            const to = document.getElementById('composeTo').value;
+            const subject = document.getElementById('composeSubject').value;
+            const content = document.getElementById('composeContent').value;
+            
+            if(!to || !subject) return alert('请填写收件人和主题');
+
+            try {
+                const params = new URLSearchParams();
+                params.append('from_email', userEmail);
+                params.append('to_email', to);
+                params.append('subject', subject);
+                params.append('content', content);
+                params.append('tags', document.getElementById('composeTags').value);
+                
+                const res = await fetch(`${API}/api/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    showNotification('✅ 邮件发送成功！');
+                    closeModal('composeModal');
+                    loadMails();
+                } else {
+                    alert('发送失败：' + data.message);
+                }
+            } catch(e) {
+                alert('发送失败');
+            }
+        }
+
+        async function saveDraft() {
+            const subject = document.getElementById('composeSubject').value;
+            
+            try {
+                const params = new URLSearchParams();
+                params.append('from_email', userEmail);
+                params.append('to_email', document.getElementById('composeTo').value);
+                params.append('subject', subject);
+                params.append('content', document.getElementById('composeContent').value);
+                params.append('is_draft', '1');
+
+                const res = await fetch(`${API}/api/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    showNotification('💾 草稿已保存');
+                    closeModal('composeModal');
+                    loadMails();
+                }
+            } catch(e) {
+                alert('保存失败');
+            }
+        }
+
+        async function deleteMail() {
+            if(!currentMailId) return alert('请先选择邮件');
+            if(!confirm('确定删除？')) return;
+            
+            try {
+                const params = new URLSearchParams();
+                params.append('id', currentMailId);
+                params.append('user_email', userEmail);
+                
+                await fetch(`${API}/api/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                
+                showNotification('✅ 邮件已删除');
+                loadMails();
+                document.getElementById('previewContent').innerHTML = '';
+            } catch(e) {
+                alert('删除失败');
+            }
+        }
+
+        // ==================== 搜索 ====================
+        function searchMails() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            if(!query) {
+                applyFilter();
+                return;
+            }
+            
+            const filtered = allMails.filter(m => 
+                (m.from && m.from.toLowerCase().includes(query)) ||
+                (m.subject && m.subject.toLowerCase().includes(query))
+            );
+            
+            updateMailList(filtered);
+        }
+
+        // ==================== 联系人管理 ====================
+        async function loadContacts() {
+            const list = document.getElementById('contactsList');
+            list.innerHTML = '<div class="empty-state">加载中...</div>';
+            try {
+                const res = await fetch(`${API}/api/contact/list?user_email=${encodeURIComponent(userEmail)}`);
+                const data = await res.json();
+                allContacts = data.contacts || [];
+                updateContactsList();
+            } catch(e) {
+                console.error(e);
+                list.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        }
+
+        function updateContactsList() {
+            const list = document.getElementById('contactsList');
+            
+            if(allContacts.length === 0) {
+                list.innerHTML = '<div class="empty-state" style="height:80px;">暂无联系人</div>';
+                return;
+            }
+
+            const html = allContacts.map(c => `
+                <div class="contact-item">
+                    <div class="contact-info" onclick="quickEmail('${c.email}')">
+                        <div class="contact-name">${c.name || '未知'}</div>
+                        <div class="contact-email">${c.email || ''}</div>
+                    </div>
+                    <div class="contact-actions">
+                        <button onclick="event.stopPropagation(); editContact(${c.id}, '${c.name}', '${c.email}', '${c.group || ''}')">✏️</button>
+                        <button onclick="event.stopPropagation(); deleteContact(${c.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+
+            list.innerHTML = html;
+        }
+
+        function openContactAdd() {
+            document.getElementById('contactTitle').textContent = '新增联系人';
+            document.getElementById('editContactId').value = '';
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactEmail').value = '';
+            document.getElementById('contactGroup').value = '';
+            document.getElementById('contactModal').style.display = 'flex';
+        }
+
+        function editContact(id, name, email, group) {
+            document.getElementById('contactTitle').textContent = '编辑联系人';
+            document.getElementById('editContactId').value = id;
+            document.getElementById('contactName').value = name;
+            document.getElementById('contactEmail').value = email;
+            document.getElementById('contactGroup').value = group;
+            document.getElementById('contactModal').style.display = 'flex';
+        }
+
+        async function saveContact() {
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const group = document.getElementById('contactGroup').value.trim();
+            
+            if(!name || !email) return alert('请填写姓名和邮箱');
+            
+            try {
+                const params = new URLSearchParams();
+                params.append('user_email', userEmail);
+                params.append('contact_name', name);
+                params.append('contact_email', email);
+                params.append('contact_group', group);
+                
+                const res = await fetch(`${API}/api/contact/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    showNotification('✅ 联系人已保存');
+                    closeModal('contactModal');
+                    // 重新加载联系人列表
+                    await loadContacts();
+                } else {
+                    alert('保存失败：' + (data.message || ''));
+                }
+            } catch(e) {
+                console.error('保存联系人出错:', e);
+                alert('保存失败');
+            }
+        }
+
+        async function deleteContact(id) {
+            if(!confirm('确定删除此联系人？')) return;
+            
+            try {
+                const params = new URLSearchParams();
+                params.append('id', id);
+                params.append('user_email', userEmail);
+                
+                const res = await fetch(`${API}/api/contact/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    showNotification('✅ 联系人已删除');
+                    await loadContacts();
+                }
+            } catch(e) {
+                console.error(e);
+                alert('删除失败');
+            }
+        }
+
+        function quickEmail(email) {
+            openCompose();
+            document.getElementById('composeTo').value = email;
+        }
+
+        // ==================== 统计 ====================
+        function updateStats() {
+            const unreadCount = allMails.filter(m => m.unread === 1).length;
+            const starredCount = allMails.filter(m => m.starred === 1).length;
+            const importantCount = allMails.filter(m => m.important === 1).length;
+            
+            document.getElementById('unreadCount').textContent = unreadCount;
+            document.getElementById('starredCount').textContent = starredCount;
+            document.getElementById('importantCount').textContent = importantCount;
+            document.getElementById('allCount').textContent = allMails.length;
+        }
+
+        function openStatsPanel() {
+            const unreadCount = allMails.filter(m => m.unread === 1).length;
+            const starredCount = allMails.filter(m => m.starred === 1).length;
+            const importantCount = allMails.filter(m => m.important === 1).length;
+            
+            document.getElementById('totalMailsCount').textContent = allMails.length;
+            document.getElementById('unreadMailsCount').textContent = unreadCount;
+            document.getElementById('starredMailsCount').textContent = starredCount;
+            document.getElementById('importantMailsCount').textContent = importantCount;
+            document.getElementById('statsModal').style.display = 'flex';
+        }
+
+        // ==================== 设置 ====================
+        function openSettings() {
+            loadSettings();
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch(`${API}/api/settings?user_email=${encodeURIComponent(userEmail)}`);
+                const data = await res.json();
+                
+                document.getElementById('settingsNickname').value = data.nickname || '';
+                document.getElementById('notifySound').checked = data.notifySound !== 0;
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function saveSettings() {
+            try {
+                const params = new URLSearchParams();
+                params.append('user_email', userEmail);
+                params.append('nickname', document.getElementById('settingsNickname').value);
+                params.append('notify_sound', document.getElementById('notifySound').checked ? '1' : '0');
+                
+                const res = await fetch(`${API}/api/settings/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    showNotification('✅ 设置已保存');
+                    closeModal('settingsModal');
+                }
+            } catch(e) {
+                alert('保存失败');
+            }
+        }
+
+        // ==================== 播放提示音 ====================
+        function playNotificationSound() {
+            try {
+                const audio = document.getElementById('notificationSound');
+                if (!audio) return;
+                
+                audio.muted = false;
+                audio.volume = 0.7;
+                audio.currentTime = 0;
+                audio.play().catch(e => console.error('播放失败:', e));
+            } catch (e) {
+                console.error('播放提示音出错:', e);
+            }
+        }
+
+        // ==================== 显示通知 ====================
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('out');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 400);
+            }, 3000);
+        }
+
+        // ==================== 登出 ====================
+        function logout() {
+            if(confirm('确定要退出登录吗？')) {
+                stopAutoRefresh();
+                localStorage.removeItem('qyemail');
+                localStorage.removeItem('qytoken');
+                
+                fetch("http://127.0.0.1:8080/api/logout", {
+                    method: 'POST',
+                    body: new URLSearchParams({ user_email: userEmail })
+                }).catch(e => console.log(e));
+                
+                setTimeout(() => {
+                    window.location.href = './login.html';
+                }, 300);
+            }
+        }
+
+        // ==================== 通用 ====================
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.onclick = function(e) {
+            if(e.target.classList.contains('modal-overlay')) {
+                e.target.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('beforeunload', stopAutoRefresh);
+    </script>
+
+</body>
+</html>

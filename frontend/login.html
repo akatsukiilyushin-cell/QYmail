@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QYmail Pro - 登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            background: #121212;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            width: 100%;
+            max-width: 420px;
+            animation: slideUp 0.5s ease;
+            border: 2px solid #d90429;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #d90429, #ef233c);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .header h1 span {
+            opacity: 0.8;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .form-group input:focus {
+            border-color: #d90429;
+            box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.2);
+        }
+
+        .form-group input::placeholder {
+            color: #666;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #d90429, #ef233c);
+            color: white;
+            border: 2px solid #d90429;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(217, 4, 41, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-register {
+            background: transparent;
+            color: #d90429;
+            border: 2px solid #d90429;
+        }
+
+        .btn-register:hover {
+            background: rgba(217, 4, 41, 0.1);
+            border-color: #ef233c;
+            color: #ef233c;
+        }
+
+        .message {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+            display: block;
+        }
+
+        .message.error {
+            background: rgba(217, 4, 41, 0.2);
+            color: #ef233c;
+            border: 1px solid #ef233c;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #d90429;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .tip {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-size: 13px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        .tip strong {
+            color: #d90429;
+        }
+
+        .two-fa-section {
+            display: none;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #333;
+        }
+
+        .two-fa-section.active {
+            display: block;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code img {
+            width: 150px;
+            height: 150px;
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .info-box {
+            background: rgba(217, 4, 41, 0.1);
+            border-left: 3px solid #d90429;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Q<span>mail</span></h1>
+            <p>Pro - 专业邮箱系统</p>
+        </div>
+
+        <div class="content">
+            <!-- 登录表单 -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>��户名</label>
+                    <input type="text" id="username" placeholder="请输入用户名" onkeypress="if(event.key==='Enter'){login()}">
+                </div>
+
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="password" placeholder="请输入密码" onkeypress="if(event.key==='Enter'){login()}">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-login" onclick="login()">登 录</button>
+                    <button class="btn-register" onclick="switchToRegister()">注 册</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <span class="spinner"></span>
+                    <span>登录中...</span>
+                </div>
+
+                <div class="message" id="message"></div>
+
+                <div class="tip">
+                    <strong>💡 测试账户：</strong><br>
+                    用户名：test<br>
+                    密码：123456
+                </div>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="regUsername" placeholder="请输入用户名" onkeypress="if(event.key==='Enter'){register()}">
+                </div>
+
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="regPassword" placeholder="请输入密码" onkeypress="if(event.key==='Enter'){register()}">
+                </div>
+
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input type="password" id="regPasswordConfirm" placeholder="请再次输入密码" onkeypress="if(event.key==='Enter'){register()}">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-login" onclick="register()">注 册</button>
+                    <button class="btn-register" onclick="switchToLogin()">返 回</button>
+                </div>
+
+                <div class="loading" id="regLoading">
+                    <span class="spinner"></span>
+                    <span>注册中...</span>
+                </div>
+
+                <div class="message" id="regMessage"></div>
+            </div>
+
+            <!-- 2FA 验证 -->
+            <div id="twoFAForm" style="display: none;">
+                <div class="info-box">
+                    🔐 请输入你的认证器应用中显示的6位验证码
+                </div>
+
+                <div class="form-group">
+                    <label>验证码</label>
+                    <input type="text" id="twoFACode" placeholder="000000" maxlength="6" onkeypress="if(event.key==='Enter'){verify2FA()}">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-login" onclick="verify2FA()">验 证</button>
+                    <button class="btn-register" onclick="switchToLogin()">返 回</button>
+                </div>
+
+                <div class="loading" id="twoFALoading">
+                    <span class="spinner"></span>
+                    <span>验证中...</span>
+                </div>
+
+                <div class="message" id="twoFAMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://127.0.0.1:8080";
+        let currentUsername = '';
+        let requiresOTP = false;
+
+        // ==================== 表单切换 ====================
+        function switchToRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            clearMessages();
+        }
+
+        function switchToLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('twoFAForm').style.display = 'none';
+            clearMessages();
+        }
+
+        function switchTo2FA() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('twoFAForm').style.display = 'block';
+            clearMessages();
+        }
+
+        function clearMessages() {
+            document.getElementById('message').textContent = '';
+            document.getElementById('message').className = 'message';
+            document.getElementById('regMessage').textContent = '';
+            document.getElementById('regMessage').className = 'message';
+            document.getElementById('twoFAMessage').textContent = '';
+            document.getElementById('twoFAMessage').className = 'message';
+        }
+
+        // ==================== 登录功能 ====================
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loading = document.getElementById('loading');
+            const message = document.getElementById('message');
+
+            if (!username || !password) {
+                showMessage('message', '用户名和密码不能为空', 'error');
+                return;
+            }
+
+            loading.style.display = 'block';
+            message.className = 'message';
+
+            try {
+                console.log('📝 登录请求:', username);
+
+                const params = new URLSearchParams();
+                params.append('username', username);
+                params.append('password', password);
+
+                const response = await fetch(`${API}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                });
+
+                const data = await response.json();
+                console.log('📨 服务器响应:', data);
+
+                loading.style.display = 'none';
+
+                if (data.success) {
+                    const email = data.email;
+                    currentUsername = username;
+
+                    // 检查是否需要 2FA
+                    if (data.requires_2fa) {
+                        console.log('🔐 需要 2FA 验证');
+                        requiresOTP = true;
+                        showMessage('message', '✅ 用户名密码正确，请进行 2FA 验证', 'success');
+                        setTimeout(() => switchTo2FA(), 1000);
+                    } else {
+                        console.log('✅ 登录成功');
+                        localStorage.setItem('qyemail', email);
+                        localStorage.setItem('qytoken', 'token_' + Date.now());
+                        showMessage('message', '✅ 登录成功，正在跳转...', 'success');
+                        setTimeout(() => {
+                            window.location.href = './mailbox.html';
+                        }, 1000);
+                    }
+                } else {
+                    console.log('❌ 登录��败:', data.message);
+                    showMessage('message', '❌ ' + (data.message || '登录失败'), 'error');
+                }
+            } catch (error) {
+                console.error('❌ 请求出错:', error);
+                loading.style.display = 'none';
+                showMessage('message', '❌ 网络错误，请检查后端服务', 'error');
+            }
+        }
+
+        // ==================== 2FA 验证 ====================
+        async function verify2FA() {
+            const code = document.getElementById('twoFACode').value.trim();
+            const loading = document.getElementById('twoFALoading');
+            const message = document.getElementById('twoFAMessage');
+
+            if (!code || code.length !== 6) {
+                showMessage('twoFAMessage', '❌ 请输入6位验证码', 'error');
+                return;
+            }
+
+            loading.style.display = 'block';
+
+            try {
+                const params = new URLSearchParams();
+                params.append('username', currentUsername);
+                params.append('otp_code', code);
+
+                const response = await fetch(`${API}/api/verify-2fa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                });
+
+                const data = await response.json();
+                loading.style.display = 'none';
+
+                if (data.success) {
+                    const email = data.email;
+                    localStorage.setItem('qyemail', email);
+                    localStorage.setItem('qytoken', 'token_' + Date.now());
+                    showMessage('twoFAMessage', '✅ 验证成功，正在跳转...', 'success');
+                    setTimeout(() => {
+                        window.location.href = './mailbox.html';
+                    }, 1000);
+                } else {
+                    showMessage('twoFAMessage', '❌ ' + (data.message || '验证失败'), 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                loading.style.display = 'none';
+                showMessage('twoFAMessage', '❌ 网络错误', 'error');
+            }
+        }
+
+        // ==================== 注册功能 ====================
+        async function register() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+            const loading = document.getElementById('regLoading');
+            const message = document.getElementById('regMessage');
+
+            if (!username || !password || !passwordConfirm) {
+                showMessage('regMessage', '所有字段不能为空', 'error');
+                return;
+            }
+
+            if (username.length < 2) {
+                showMessage('regMessage', '用户名至少需要2个字符', 'error');
+                return;
+            }
+
+            if (password.length < 3) {
+                showMessage('regMessage', '密码至少需要3个字符', 'error');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                showMessage('regMessage', '两次输入的密码不一致', 'error');
+                return;
+            }
+
+            loading.style.display = 'block';
+
+            try {
+                const params = new URLSearchParams();
+                params.append('username', username);
+                params.append('password', password);
+
+                const response = await fetch(`${API}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                });
+
+                const data = await response.json();
+                loading.style.display = 'none';
+
+                if (data.success) {
+                    const email = data.email;
+                    showMessage('regMessage', `✅ 注册成功！邮箱：${email}，3秒后跳转到登录...`, 'success');
+
+                    setTimeout(() => {
+                        document.getElementById('username').value = username;
+                        document.getElementById('password').value = password;
+                        switchToLogin();
+                        showMessage('message', '✅ 注册成功，请登录', 'success');
+                    }, 3000);
+                } else {
+                    showMessage('regMessage', '❌ ' + (data.message || '注册失败'), 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                loading.style.display = 'none';
+                showMessage('regMessage', '❌ 网络错误', 'error');
+            }
+        }
+
+        // ==================== 辅助函数 ====================
+        function showMessage(elementId, text, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = text;
+            element.className = `message ${type}`;
+        }
+
+        window.onload = function() {
+            const email = localStorage.getItem('qyemail');
+            if (email) {
+                // 已登录，重定向
+                window.location.href = './mailbox.html';
+            }
+        };
+    </script>
+</body>
+</html>
